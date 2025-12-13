@@ -18,7 +18,7 @@ static const lv_img_dsc_t *animation_frames[] = {
     &gif_frame1_img,
 };
 
-#define FRAME_DELAY_MS      250
+#define FRAME_DELAY_MS      250U
 #define FRAME_ZOOM          512
 #define FRAME_COUNT         (sizeof(animation_frames) / sizeof(animation_frames[0]))
 #define CYCLE_DURATION_MS   (FRAME_DELAY_MS * FRAME_COUNT)
@@ -35,6 +35,7 @@ static void start_anim_if_needed(void)
         return;
     }
 
+    /* Cancel any pending stop timer, since typing resumed */
     if (s_stop_timer) {
         lv_timer_del(s_stop_timer);
         s_stop_timer = NULL;
@@ -53,14 +54,14 @@ static void start_anim_if_needed(void)
 
 static void stop_anim_timer_cb(lv_timer_t *timer)
 {
-    LV_UNUSED(timer);
+    (void)timer;
 
     if (!s_anim_widget || !s_anim_widget->animimg) {
         return;
     }
 
-    lv_animimg_stop(s_anim_widget->animimg);
-    lv_img_set_src(s_anim_widget->animimg, animation_frames[0]);
+    lv_anim_del(s_anim_widget->animimg, NULL);
+    lv_img_set_src(s_anim_widget->animimg, (const void *)animation_frames[0]);
 
     s_anim_running = false;
 
@@ -74,7 +75,7 @@ static void schedule_stop_after_current_cycle(void)
 {
     if (!s_anim_running) {
         if (s_anim_widget && s_anim_widget->animimg) {
-            lv_img_set_src(s_anim_widget->animimg, animation_frames[0]);
+            lv_img_set_src(s_anim_widget->animimg, (const void *)animation_frames[0]);
         }
         return;
     }
@@ -110,8 +111,7 @@ int zmk_widget_animation_init(struct zmk_widget_animation *widget, lv_obj_t *par
     lv_animimg_set_duration(widget->animimg, FRAME_DELAY_MS * FRAME_COUNT);
     lv_animimg_set_repeat_count(widget->animimg, LV_ANIM_REPEAT_INFINITE);
     lv_img_set_zoom(widget->animimg, FRAME_ZOOM);
-
-    lv_img_set_src(widget->animimg, animation_frames[0]);
+    lv_img_set_src(widget->animimg, (const void *)animation_frames[0]);
 
     s_anim_widget   = widget;
     s_anim_running  = false;
