@@ -11,6 +11,9 @@ static const lv_img_dsc_t *animation_frames[] = {
     &gif_frame2_img,
     &gif_frame3_img,
     &gif_frame4_img,
+    &gif_frame3_img,
+    &gif_frame2_img,
+    &gif_frame1_img,
 };
 
 #define FRAME_DELAY_MS 250
