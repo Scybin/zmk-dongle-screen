@@ -151,6 +151,12 @@ config DONGLE_SCREEN_MODIFIER_ACTIVE
     help
       If the Modifier Widget should be active or not
 
+config DONGLE_SCREEN_ANIMATION_ACTIVE
+    bool "Animation Widget active"
+    default y
+    help
+      If the Animation Widget should be active or not
+
 config DONGLE_SCREEN_LAYER_ACTIVE
     bool "Layer Widget active"
     default y

@@ -74,37 +74,48 @@ static bool is_peripheral_reconnecting(uint8_t source, uint8_t new_level) {
 }
 
 static void draw_battery(lv_obj_t *canvas, uint8_t level, bool usb_present) {
-    
-    if (level < 1)
-    {
-        lv_canvas_fill_bg(canvas, lv_palette_main(LV_PALETTE_RED), LV_OPA_COVER);
-    } else if (level <= 10) {
-        lv_canvas_fill_bg(canvas, lv_palette_main(LV_PALETTE_YELLOW), LV_OPA_COVER);
+    lv_color_t full_color;
+    lv_color_t empty_color;
+
+    if (level < 1) {
+        full_color  = lv_color_hex(0x9e2121);
+        empty_color = lv_color_hex(0x9e2121);
+
+    } else if (level < 5) {
+        full_color = lv_color_hex(0xD93025);
+        empty_color = lv_color_mix(full_color, lv_color_black(), LV_OPA_50);
+
+    } else if (level <= 25) {
+        full_color = lv_color_hex(0xE8AC11);
+        empty_color = lv_color_mix(full_color, lv_color_black(), LV_OPA_50);
+
     } else {
-        lv_canvas_fill_bg(canvas, lv_color_white(), LV_OPA_COVER);
-    }
-
-    
-    lv_draw_rect_dsc_t rect_fill_dsc;
-    lv_draw_rect_dsc_init(&rect_fill_dsc);
-    rect_fill_dsc.bg_color = lv_color_black();
-
-
-
-    lv_canvas_set_px(canvas, 0, 0, lv_color_black());
-    lv_canvas_set_px(canvas, 0, 4, lv_color_black());
-    lv_canvas_set_px(canvas, 101, 0, lv_color_black());
-    lv_canvas_set_px(canvas, 101, 4, lv_color_black());
-
-    if (level <= 99 && level > 0)
-    {
-        lv_canvas_draw_rect(canvas, level, 1, 100 - level, 3, &rect_fill_dsc);
-        lv_canvas_set_px(canvas, 100, 1, lv_color_black());
-        lv_canvas_set_px(canvas, 100, 2, lv_color_black());
-        lv_canvas_set_px(canvas, 100, 3, lv_color_black());
+        full_color = lv_color_hex(0xFFFFFF);
+        empty_color = lv_color_hex(0x909090);
     }
     
+    lv_color_t bg_color = lv_color_black();
+
+    lv_canvas_fill_bg(canvas, bg_color, LV_OPA_COVER);
+
+    lv_draw_rect_dsc_t rect_dsc;
+    lv_draw_rect_dsc_init(&rect_dsc);
+    rect_dsc.border_width  = 0;
+    rect_dsc.border_opa    = LV_OPA_TRANSP;
+    rect_dsc.outline_width = 0;
+    rect_dsc.outline_opa   = LV_OPA_TRANSP;
+    rect_dsc.bg_opa        = LV_OPA_COVER;
+    rect_dsc.radius        = 2;
+
+    rect_dsc.bg_color = empty_color;
+    lv_canvas_draw_rect(canvas, 1, 0, 100, 5, &rect_dsc);
+
+    if (level > 0) {
+        rect_dsc.bg_color = full_color;
+        lv_canvas_draw_rect(canvas, 1, 0, level, 5, &rect_dsc);
+    }
 }
+
 
 static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
     if (state.source >= ZMK_SPLIT_CENTRAL_PERIPHERAL_COUNT + SOURCE_OFFSET) {
@@ -116,7 +127,6 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
     
     // Update our tracking
     last_battery_levels[state.source] = state.level;
-
 
     // Wake screen on reconnection
     if (reconnecting) {
@@ -130,40 +140,30 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
 #endif
     }
 
-
     LOG_DBG("source: %d, level: %d, usb: %d", state.source, state.level, state.usb_present);
     lv_obj_t *symbol = battery_objects[state.source].symbol;
-    lv_obj_t *label = battery_objects[state.source].label;
+    lv_obj_t *label  = battery_objects[state.source].label;
 
     draw_battery(symbol, state.level, state.usb_present);
-    
-    if (state.level > 0) {
-        lv_obj_set_style_text_color(label, lv_color_white(), 0);
+
+    if (state.level < 1) {
+        lv_obj_set_style_text_color(label, lv_color_hex(0x9e2121), 0);
+        lv_label_set_text(label, "X");
+    } else if (state.level < 5) {
+        lv_obj_set_style_text_color(label, lv_color_hex(0xD93025), 0);
+        lv_label_set_text_fmt(label, "%4u", state.level);
+    } else if (state.level <= 25) {
+        lv_obj_set_style_text_color(label, lv_color_hex(0xE8AC11), 0);
         lv_label_set_text_fmt(label, "%4u", state.level);
     } else {
-        lv_obj_set_style_text_color(label, lv_palette_main(LV_PALETTE_RED), 0);
-        lv_label_set_text(label, "X");
+        lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), 0);
+        lv_label_set_text_fmt(label, "%4u", state.level);
     }
 
-    if (state.level < 1)
-    {
-        lv_obj_set_style_text_color(label, lv_palette_main(LV_PALETTE_RED), 0);
-        lv_label_set_text(label, "X");
-    } else if (state.level <= 10) {
-        lv_obj_set_style_text_color(label, lv_palette_main(LV_PALETTE_YELLOW), 0);
-        lv_label_set_text_fmt(label, "%4u", state.level);
-    } else {
-        lv_obj_set_style_text_color(label, lv_color_white(), 0);
-        lv_label_set_text_fmt(label, "%4u", state.level);
-    }
-    
-    
-    
     lv_obj_clear_flag(symbol, LV_OBJ_FLAG_HIDDEN);
     lv_obj_move_foreground(symbol);
     lv_obj_clear_flag(label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_move_foreground(label);
-
 }
 
 void battery_status_update_cb(struct battery_state state) {

@@ -1,11 +1,35 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zmk/hid.h>
+#include <zmk/event_manager.h>
+#include <zmk/events/hid_indicators_changed.h>
 #include <lvgl.h>
 #include "mod_status.h"
-#include <fonts.h> // <-- Wichtig für LV_FONT_DECLARE
+#include <fonts.h> // NerdFont
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+
+#define LED_NLCK 0x01
+#define LED_CLCK 0x02
+#define LED_SLCK 0x04
+
+static bool caps_lock_on = false;
+
+static int mod_status_hid_indicators_listener(const zmk_event_t *eh)
+{
+    const struct zmk_hid_indicators_changed *ev = as_zmk_hid_indicators_changed(eh);
+    if (!ev) {
+        return 0;
+    }
+
+    caps_lock_on = (ev->indicators & LED_CLCK) != 0;
+    return 0;
+}
+
+/* Register listener + subscription */
+ZMK_LISTENER(widget_mod_status_hid_indicators, mod_status_hid_indicators_listener);
+ZMK_SUBSCRIPTION(widget_mod_status_hid_indicators, zmk_hid_indicators_changed);
+
 
 static void update_mod_status(struct zmk_widget_mod_status *widget)
 {
@@ -13,8 +37,7 @@ static void update_mod_status(struct zmk_widget_mod_status *widget)
     char text[32] = "";
     int idx = 0;
 
-    // Temporäre Puffer für Symbole
-    char *syms[4];
+    char *syms[5];
     int n = 0;
 
     if (mods & (MOD_LCTL | MOD_RCTL))
@@ -23,7 +46,7 @@ static void update_mod_status(struct zmk_widget_mod_status *widget)
         syms[n++] = "󰘶"; // U+F0636
     if (mods & (MOD_LALT | MOD_RALT))
         syms[n++] = "󰘵"; // U+F0635
-    if (mods & (MOD_LGUI | MOD_RGUI))
+    if (mods & (MOD_LGUI | MOD_RGUI)) {
     // set next syms according to CONFIG_DONGLE_SCREEN_SYSTEM (0,1,2)
 #if CONFIG_DONGLE_SCREEN_SYSTEM_ICON == 1
         syms[n++] = "󰌽"; // U+DF3D
@@ -32,11 +55,15 @@ static void update_mod_status(struct zmk_widget_mod_status *widget)
 #else
         syms[n++] = "󰘳"; // U+F0633
 #endif
+    }
+    if (caps_lock_on) {
+        syms[n++] = "󰘲"; // U+F0632
+    }
 
-    for (int i = 0; i < n; ++i)
-    {
-        if (i > 0)
+    for (int i = 0; i < n; ++i) {
+        if (i > 0) {
             idx += snprintf(&text[idx], sizeof(text) - idx, " ");
+        }
         idx += snprintf(&text[idx], sizeof(text) - idx, "%s", syms[i]);
     }
 
@@ -59,7 +86,7 @@ int zmk_widget_mod_status_init(struct zmk_widget_mod_status *widget, lv_obj_t *p
     widget->label = lv_label_create(widget->obj);
     lv_obj_align(widget->label, LV_ALIGN_CENTER, 0, 0);
     lv_label_set_text(widget->label, "-");
-    lv_obj_set_style_text_font(widget->label, &NerdFonts_Regular_40, 0); // <-- NerdFont setzen
+    lv_obj_set_style_text_font(widget->label, &NerdFonts_Regular_40, 0);
 
     k_timer_init(&mod_status_timer, mod_status_timer_cb, NULL);
     k_timer_user_data_set(&mod_status_timer, widget);
