@@ -177,7 +177,7 @@ const lv_img_dsc_t gif_frame4_img = {
         .always_zero = 0,
         .reserved = 0,
         .w = FROG_4_WIDTH,
-        .h = FROG_2_HEIGHT,
+        .h = FROG_4_HEIGHT,
     },
     .data_size = sizeof(frog_4),
     .data = (const uint8_t *)frog_4,
