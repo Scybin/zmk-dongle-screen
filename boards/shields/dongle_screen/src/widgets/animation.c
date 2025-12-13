@@ -4,11 +4,15 @@
 /* Frames provided by assets/gif.c */
 extern const lv_img_dsc_t gif_frame1_img;
 extern const lv_img_dsc_t gif_frame2_img;
+extern const lv_img_dsc_t gif_frame3_img;
+extern const lv_img_dsc_t gif_frame4_img;
 
 /* Local frame array for lv_animimg */
 static const lv_img_dsc_t *animation_frames[] = {
     &gif_frame1_img,
     &gif_frame2_img,
+    &gif_frame3_img,
+    &gif_frame4_img,
 };
 
 int zmk_widget_animation_init(struct zmk_widget_animation *widget, lv_obj_t *parent)
