@@ -10,15 +10,7 @@
   -o "F:\VS_repos\source\repos\zmk-dongle-screen\boards\shields\dongle_screen\src\fonts\NerdFonts_Regular_20.c"
  ******************************************************************************/
 
-#ifdef LV_LVGL_H_INCLUDE_SIMPLE
 #include "lvgl.h"
-#else
-#include "lvgl/lvgl.h"
-#endif
-
-#ifndef NERDFONTS_REGULAR_20
-#define NERDFONTS_REGULAR_20 1
-#endif
 
 #if NERDFONTS_REGULAR_20
 
