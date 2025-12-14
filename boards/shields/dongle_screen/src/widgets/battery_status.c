@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2024 The ZMK Contributors
  *
  * SPDX-License-Identifier: MIT
@@ -153,7 +153,7 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
 
     if (charging) {
         lv_obj_set_style_text_color(label, lv_color_hex(0x00FF00), 0);
-        lv_label_set_text(label, "~");
+        lv_label_set_text(label, "󰂄");
     } else if (state.level < 1) {
         lv_obj_set_style_text_color(label, lv_color_hex(0x9e2121), 0);
         lv_label_set_text(label, "X");
