@@ -27,8 +27,6 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
     #define SOURCE_OFFSET 0
 #endif
 
-#define ICON_BATTERY_CHARGING "\xF3\xB0\x82\x84"
-
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
 struct battery_state {
@@ -70,11 +68,11 @@ static bool is_peripheral_reconnecting(uint8_t source, uint8_t new_level) {
     return reconnecting;
 }
 
-static void draw_battery(lv_obj_t *canvas, uint8_t level, bool usb_present) {
+static void draw_battery(lv_obj_t *canvas, uint8_t level, bool charging) {
     lv_color_t full_color;
     lv_color_t empty_color;
 
-    if (usb_present) {
+    if (charging) {
         full_color  = lv_color_hex(0x00FF00);
         empty_color = lv_color_mix(full_color, lv_color_black(), LV_OPA_50);
     } else if (level < 1) {
@@ -107,7 +105,7 @@ static void draw_battery(lv_obj_t *canvas, uint8_t level, bool usb_present) {
     rect_dsc.bg_color = empty_color;
     lv_canvas_draw_rect(canvas, 1, 0, 100, 5, &rect_dsc);
 
-    uint8_t bar_px = usb_present ? 100 : level;
+    uint8_t bar_px = charging ? 100 : level;
     if (bar_px > 100) {
         bar_px = 100;
     }
@@ -137,15 +135,25 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
     #endif
     }
 
-    LOG_DBG("source: %d, level: %d, usb: %d", state.source, state.level, state.usb_present);
+    bool charging = false;
+
+    if (state.source == 0U && state.usb_present) {
+        charging = true;
+    } else if (state.level >= 100U) {
+        charging = true;
+    }
+
+    LOG_DBG("source: %d, level: %d, usb_present: %d, charging: %d",
+            state.source, state.level, state.usb_present, charging);
+
     lv_obj_t *symbol = battery_objects[state.source].symbol;
     lv_obj_t *label  = battery_objects[state.source].label;
 
-    draw_battery(symbol, state.level, state.usb_present);
+    draw_battery(symbol, state.level, charging);
 
-    if (state.usb_present) {
+    if (charging) {
         lv_obj_set_style_text_color(label, lv_color_hex(0x00FF00), 0);
-        lv_label_set_text(label, ICON_BATTERY_CHARGING);
+        lv_label_set_text(label, "~");
     } else if (state.level < 1) {
         lv_obj_set_style_text_color(label, lv_color_hex(0x9e2121), 0);
         lv_label_set_text(label, "X");
