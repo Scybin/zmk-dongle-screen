@@ -4,11 +4,7 @@
  * Opts: --bpp 4 --size 40 --no-compress --use-color-info --font F:\Keyboard\Fonts\JetBrainsMono\JetBrainsMonoNLNerdFont-Regular.ttf --symbols=0123456789X-^󰕓󰘳󰌽󰘴󰘵󰘶󰘲󰃚󰃛󰃜󰃝󰃞󰃟󰃠󰃡󰳲󰂄 --format lvgl -o F:\VS_repos\source\repos\zmk-dongle-screen\boards\shields\dongle_screen\src\fonts\NerdFonts_Regular_40.c
  ******************************************************************************/
 
-#ifdef LV_LVGL_H_INCLUDE_SIMPLE
 #include "lvgl.h"
-#else
-#include "lvgl/lvgl.h"
-#endif
 
 #ifndef NERDFONTS_REGULAR_40
 #define NERDFONTS_REGULAR_40 1
