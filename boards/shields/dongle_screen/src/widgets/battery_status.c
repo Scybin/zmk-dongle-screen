@@ -24,9 +24,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include "../brightness.h"
 
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY)
-    #define SOURCE_OFFSET 1
+#    define SOURCE_OFFSET 1
 #else
-    #define SOURCE_OFFSET 0
+#    define SOURCE_OFFSET 0
 #endif
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
@@ -40,6 +40,7 @@ struct battery_state {
 struct battery_object {
     lv_obj_t *symbol;
     lv_obj_t *label;
+    const lv_font_t *default_font;
 } battery_objects[ZMK_SPLIT_CENTRAL_PERIPHERAL_COUNT + SOURCE_OFFSET];
 
 static lv_color_t battery_image_buffer[ZMK_SPLIT_CENTRAL_PERIPHERAL_COUNT + SOURCE_OFFSET][102 * 5];
@@ -62,9 +63,7 @@ static bool is_peripheral_reconnecting(uint8_t source, uint8_t new_level) {
     bool reconnecting = (previous_level < 1) && (new_level >= 1);
 
     if (reconnecting) {
-        LOG_INF("Peripheral %d reconnection: %d%% -> %d%% (was %s)",
-                source, previous_level, new_level,
-                previous_level == -1 ? "never seen" : "disconnected");
+        LOG_INF("Peripheral %d reconnection: %d%% -> %d%% (was %s)", source, previous_level, new_level, previous_level == -1 ? "never seen" : "disconnected");
     }
 
     return reconnecting;
@@ -127,14 +126,12 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
     last_battery_levels[state.source] = state.level;
 
     if (reconnecting) {
-    #if CONFIG_DONGLE_SCREEN_IDLE_TIMEOUT_S > 0
-        LOG_INF("Peripheral %d reconnected (battery: %d%%), requesting screen wake",
-                state.source, state.level);
+#if CONFIG_DONGLE_SCREEN_IDLE_TIMEOUT_S > 0
+        LOG_INF("Peripheral %d reconnected (battery: %d%%), requesting screen wake", state.source, state.level);
         brightness_wake_screen_on_reconnect();
-    #else
-        LOG_INF("Peripheral %d reconnected (battery: %d%%)",
-                state.source, state.level);
-    #endif
+#else
+        LOG_INF("Peripheral %d reconnected (battery: %d%%)", state.source, state.level);
+#endif
     }
 
     bool charging = false;
@@ -145,29 +142,36 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
         charging = true;
     }
 
-    LOG_DBG("source: %d, level: %d, usb_present: %d, charging: %d",
-            state.source, state.level, state.usb_present, charging);
+    LOG_DBG("source: %d, level: %d, usb_present: %d, charging: %d", state.source, state.level, state.usb_present, charging);
 
-    lv_obj_t *symbol = battery_objects[state.source].symbol;
-    lv_obj_t *label  = battery_objects[state.source].label;
+    struct battery_object *bo = &battery_objects[state.source];
+    lv_obj_t *symbol = bo->symbol;
+    lv_obj_t *label  = bo->label;
 
     draw_battery(symbol, state.level, charging);
 
     if (charging) {
+        lv_obj_set_style_text_font(label, &NerdFonts_Regular_20, LV_PART_MAIN);
         lv_obj_set_style_text_color(label, lv_color_hex(0x00FF00), 0);
         lv_label_set_text(label, "󰂄");
-    } else if (state.level < 1) {
-        lv_obj_set_style_text_color(label, lv_color_hex(0x9e2121), 0);
-        lv_label_set_text(label, "X");
-    } else if (state.level <= 5) {
-        lv_obj_set_style_text_color(label, lv_color_hex(0xD93025), 0);
-        lv_label_set_text_fmt(label, "%4u", state.level);
-    } else if (state.level <= 25) {
-        lv_obj_set_style_text_color(label, lv_color_hex(0xE8AC11), 0);
-        lv_label_set_text_fmt(label, "%4u", state.level);
     } else {
-        lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), 0);
-        lv_label_set_text_fmt(label, "%4u", state.level);
+        if (bo->default_font) {
+            lv_obj_set_style_text_font(label, bo->default_font, LV_PART_MAIN);
+        }
+
+        if (state.level < 1) {
+            lv_obj_set_style_text_color(label, lv_color_hex(0x9e2121), 0);
+            lv_label_set_text(label, "X");
+        } else if (state.level <= 5) {
+            lv_obj_set_style_text_color(label, lv_color_hex(0xD93025), 0);
+            lv_label_set_text_fmt(label, "%4u", state.level);
+        } else if (state.level <= 25) {
+            lv_obj_set_style_text_color(label, lv_color_hex(0xE8AC11), 0);
+            lv_label_set_text_fmt(label, "%4u", state.level);
+        } else {
+            lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), 0);
+            lv_label_set_text_fmt(label, "%4u", state.level);
+        }
     }
 
     lv_obj_clear_flag(symbol, LV_OBJ_FLAG_HIDDEN);
@@ -198,11 +202,11 @@ static struct battery_state central_battery_status_get_state(const zmk_event_t *
     return (struct battery_state){
         .source = 0,
         .level  = (ev != NULL) ? ev->state_of_charge : zmk_battery_state_of_charge(),
-    #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
+#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
         .usb_present = zmk_usb_is_powered(),
-    #else
+#else
         .usb_present = false,
-    #endif
+#endif
     };
 }
 
@@ -219,16 +223,17 @@ ZMK_DISPLAY_WIDGET_LISTENER(widget_dongle_battery_status, struct battery_state, 
 ZMK_SUBSCRIPTION(widget_dongle_battery_status, zmk_peripheral_battery_state_changed);
 
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY)
-#if !IS_ENABLED(CONFIG_ZMK_SPLIT) || IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
+#    if !IS_ENABLED(CONFIG_ZMK_SPLIT) || IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
 
 ZMK_SUBSCRIPTION(widget_dongle_battery_status, zmk_battery_state_changed);
-#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
+#        if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
 ZMK_SUBSCRIPTION(widget_dongle_battery_status, zmk_usb_conn_state_changed);
-#endif
-#endif
+#        endif
+#    endif
 #endif
 
-int zmk_widget_dongle_battery_status_init(struct zmk_widget_dongle_battery_status *widget, lv_obj_t *parent) {
+int zmk_widget_dongle_battery_status_init(struct zmk_widget_dongle_battery_status *widget,
+                                          lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
 
     lv_obj_set_size(widget->obj, 240, 40);
@@ -241,13 +246,16 @@ int zmk_widget_dongle_battery_status_init(struct zmk_widget_dongle_battery_statu
 
         lv_obj_align(image_canvas, LV_ALIGN_BOTTOM_MID, -60 + (i * 120), -8);
         lv_obj_align(battery_label, LV_ALIGN_TOP_MID, -60 + (i * 120), 0);
-        lv_obj_set_style_text_font(battery_label, &NerdFonts_Regular_20, 0);
+
+        const lv_font_t *default_font = lv_obj_get_style_text_font(battery_label, LV_PART_MAIN);
+
         lv_obj_add_flag(image_canvas, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(battery_label, LV_OBJ_FLAG_HIDDEN);
 
         battery_objects[i] = (struct battery_object){
-            .symbol = image_canvas,
-            .label  = battery_label,
+            .symbol       = image_canvas,
+            .label        = battery_label,
+            .default_font = default_font,
         };
     }
 
