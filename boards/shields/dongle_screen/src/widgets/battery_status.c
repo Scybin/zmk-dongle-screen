@@ -27,7 +27,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
     #define SOURCE_OFFSET 0
 #endif
 
-#define BATTERY_CHARGING_COLOR_HEX 0x00FF00
+#define ICON_BATTERY_CHARGING "\xF3\xB0\x82\x84"
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
@@ -75,12 +75,12 @@ static void draw_battery(lv_obj_t *canvas, uint8_t level, bool usb_present) {
     lv_color_t empty_color;
 
     if (usb_present) {
-        full_color  = lv_color_hex(BATTERY_CHARGING_COLOR_HEX);
+        full_color  = lv_color_hex(0x00FF00);
         empty_color = lv_color_mix(full_color, lv_color_black(), LV_OPA_50);
     } else if (level < 1) {
         full_color  = lv_color_hex(0x9e2121);
         empty_color = lv_color_hex(0x9e2121);
-    } else if (level < 5) {
+    } else if (level <= 5) {
         full_color  = lv_color_hex(0xD93025);
         empty_color = lv_color_mix(full_color, lv_color_black(), LV_OPA_50);
     } else if (level <= 25) {
@@ -103,8 +103,10 @@ static void draw_battery(lv_obj_t *canvas, uint8_t level, bool usb_present) {
     rect_dsc.outline_opa   = LV_OPA_TRANSP;
     rect_dsc.bg_opa        = LV_OPA_COVER;
     rect_dsc.radius        = 2;
+
     rect_dsc.bg_color = empty_color;
     lv_canvas_draw_rect(canvas, 1, 0, 100, 5, &rect_dsc);
+
     uint8_t bar_px = usb_present ? 100 : level;
     if (bar_px > 100) {
         bar_px = 100;
@@ -142,12 +144,12 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
     draw_battery(symbol, state.level, state.usb_present);
 
     if (state.usb_present) {
-        lv_obj_set_style_text_color(label, lv_color_hex(BATTERY_CHARGING_COLOR_HEX), 0);
-        lv_label_set_text(label, "??");
+        lv_obj_set_style_text_color(label, lv_color_hex(0x00FF00), 0);
+        lv_label_set_text(label, ICON_BATTERY_CHARGING);
     } else if (state.level < 1) {
         lv_obj_set_style_text_color(label, lv_color_hex(0x9e2121), 0);
         lv_label_set_text(label, "X");
-    } else if (state.level < 5) {
+    } else if (state.level <= 5) {
         lv_obj_set_style_text_color(label, lv_color_hex(0xD93025), 0);
         lv_label_set_text_fmt(label, "%4u", state.level);
     } else if (state.level <= 25) {
@@ -177,7 +179,7 @@ static struct battery_state peripheral_battery_status_get_state(const zmk_event_
     return (struct battery_state){
         .source      = ev->source + SOURCE_OFFSET,
         .level       = ev->state_of_charge,
-        .usb_present = false, /* No USB charging info for peripherals */
+        .usb_present = false,
     };
 }
 
@@ -190,7 +192,7 @@ static struct battery_state central_battery_status_get_state(const zmk_event_t *
         .usb_present = zmk_usb_is_powered(),
     #else
         .usb_present = false,
-    #endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
+    #endif
     };
 }
 
@@ -202,8 +204,7 @@ static struct battery_state battery_status_get_state(const zmk_event_t *eh) {
     }
 }
 
-ZMK_DISPLAY_WIDGET_LISTENER(widget_dongle_battery_status, struct battery_state,
-                            battery_status_update_cb, battery_status_get_state)
+ZMK_DISPLAY_WIDGET_LISTENER(widget_dongle_battery_status, struct battery_state, battery_status_update_cb, battery_status_get_state)
 
 ZMK_SUBSCRIPTION(widget_dongle_battery_status, zmk_peripheral_battery_state_changed);
 
@@ -213,12 +214,11 @@ ZMK_SUBSCRIPTION(widget_dongle_battery_status, zmk_peripheral_battery_state_chan
 ZMK_SUBSCRIPTION(widget_dongle_battery_status, zmk_battery_state_changed);
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
 ZMK_SUBSCRIPTION(widget_dongle_battery_status, zmk_usb_conn_state_changed);
-#endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
-#endif /* !IS_ENABLED(CONFIG_ZMK_SPLIT) || IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL) */
-#endif /* IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY) */
+#endif
+#endif
+#endif
 
-int zmk_widget_dongle_battery_status_init(struct zmk_widget_dongle_battery_status *widget,
-                                          lv_obj_t *parent) {
+int zmk_widget_dongle_battery_status_init(struct zmk_widget_dongle_battery_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
 
     lv_obj_set_size(widget->obj, 240, 40);
