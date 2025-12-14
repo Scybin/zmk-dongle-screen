@@ -42,13 +42,11 @@ struct battery_object {
     
 static lv_color_t battery_image_buffer[ZMK_SPLIT_CENTRAL_PERIPHERAL_COUNT + SOURCE_OFFSET][102 * 5];
 
-// Peripheral reconnection tracking
-// ZMK sends battery events with level < 1 when peripherals disconnect
 static int8_t last_battery_levels[ZMK_SPLIT_CENTRAL_PERIPHERAL_COUNT + SOURCE_OFFSET];
 
 static void init_peripheral_tracking(void) {
     for (int i = 0; i < (ZMK_SPLIT_CENTRAL_PERIPHERAL_COUNT + SOURCE_OFFSET); i++) {
-        last_battery_levels[i] = -1; // -1 indicates never seen before
+        last_battery_levels[i] = -1;
     }
 }
 
@@ -59,9 +57,6 @@ static bool is_peripheral_reconnecting(uint8_t source, uint8_t new_level) {
     
     int8_t previous_level = last_battery_levels[source];
     
-    // Reconnection detected if:
-    // 1. Previous level was < 1 (disconnected/unknown) AND
-    // 2. New level is >= 1 (valid battery level)
     bool reconnecting = (previous_level < 1) && (new_level >= 1);
     
     if (reconnecting) {
@@ -121,14 +116,10 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
     if (state.source >= ZMK_SPLIT_CENTRAL_PERIPHERAL_COUNT + SOURCE_OFFSET) {
         return;
     }
-    
-    // Check for reconnection using the existing battery level mechanism
+
     bool reconnecting = is_peripheral_reconnecting(state.source, state.level);
-    
-    // Update our tracking
     last_battery_levels[state.source] = state.level;
 
-    // Wake screen on reconnection
     if (reconnecting) {
 #if CONFIG_DONGLE_SCREEN_IDLE_TIMEOUT_S > 0    
         LOG_INF("Peripheral %d reconnected (battery: %d%%), requesting screen wake", 
@@ -238,7 +229,6 @@ int zmk_widget_dongle_battery_status_init(struct zmk_widget_dongle_battery_statu
 
     sys_slist_append(&widgets, &widget->node);
 
-    // Initialize peripheral tracking
     init_peripheral_tracking();
 
     widget_dongle_battery_status_init();
