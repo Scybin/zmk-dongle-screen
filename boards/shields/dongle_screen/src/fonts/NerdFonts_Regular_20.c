@@ -12,6 +12,10 @@
 
 #include "lvgl.h"
 
+#ifndef NERDFONTS_REGULAR_20
+#define NERDFONTS_REGULAR_20 1
+#endif
+
 #if NERDFONTS_REGULAR_20
 
 /*-----------------
