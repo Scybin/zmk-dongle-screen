@@ -35,7 +35,6 @@ static void start_anim_if_needed(void)
         return;
     }
 
-    /* Cancel any pending stop timer, since typing resumed */
     if (s_stop_timer) {
         lv_timer_del(s_stop_timer);
         s_stop_timer = NULL;
