@@ -61,13 +61,11 @@ static void update_mod_status(struct zmk_widget_mod_status *widget)
     }
 
     for (int i = 0; i < n; ++i) {
-        if (i > 0) {
-            idx += snprintf(&text[idx], sizeof(text) - idx, " ");
-        }
         idx += snprintf(&text[idx], sizeof(text) - idx, "%s", syms[i]);
     }
 
     lv_label_set_text(widget->label, idx ? text : "");
+    lv_obj_align(widget->label, LV_ALIGN_CENTER, 0, 0);
 }
 
 static void mod_status_timer_cb(struct k_timer *timer)
@@ -85,8 +83,9 @@ int zmk_widget_mod_status_init(struct zmk_widget_mod_status *widget, lv_obj_t *p
 
     widget->label = lv_label_create(widget->obj);
     lv_obj_align(widget->label, LV_ALIGN_CENTER, 0, 0);
-    lv_label_set_text(widget->label, "-");
+    lv_label_set_text(widget->label, "");
     lv_obj_set_style_text_font(widget->label, &NerdFonts_Regular_40, 0);
+    lv_obj_set_style_text_letter_space(widget->label, 0, 0);
 
     k_timer_init(&mod_status_timer, mod_status_timer_cb, NULL);
     k_timer_user_data_set(&mod_status_timer, widget);
