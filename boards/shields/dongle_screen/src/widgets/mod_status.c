@@ -15,7 +15,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define LED_CLCK 0x02
 #define LED_SLCK 0x04
 
-#define MOD_ICON_SPACING 10
+#define MOD_ICON_SPACING 15
 
 static bool caps_lock_on = false;
 
