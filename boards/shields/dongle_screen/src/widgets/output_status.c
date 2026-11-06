@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2024 The ZMK Contributors
  *
@@ -28,9 +27,6 @@ static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 #define STATUS_BOX_HEIGHT      44
 #define STATUS_FIELD_WIDTH     42
 
-#define STATUS_BG_COLOR        0x244766
-#define STATUS_BORDER_COLOR    0x79A8C7
-#define STATUS_SHADOW_COLOR    0x5085AC
 #define STATUS_ACCENT_COLOR    0x56BFD8
 #define STATUS_SEPARATOR_COLOR 0x91A5BD
 
@@ -241,6 +237,12 @@ int zmk_widget_output_status_init(
     lv_obj_set_style_pad_all(
         widget->obj, 0, LV_PART_MAIN
     );
+    lv_obj_set_style_outline_width(
+        widget->obj, 0, LV_PART_MAIN
+    );
+    lv_obj_set_style_shadow_width(
+        widget->obj, 0, LV_PART_MAIN
+    );
     lv_obj_clear_flag(
         widget->obj, LV_OBJ_FLAG_SCROLLABLE
     );
@@ -255,53 +257,19 @@ int zmk_widget_output_status_init(
         status_box, LV_ALIGN_TOP_MID, 0, 8
     );
 
-    lv_obj_set_style_bg_color(
-        status_box,
-        lv_color_hex(STATUS_BG_COLOR),
-        LV_PART_MAIN
-    );
-
     lv_obj_set_style_bg_opa(
-        status_box, LV_OPA_COVER, LV_PART_MAIN
-    );
-
-    lv_obj_set_style_border_color(
-        status_box,
-        lv_color_hex(STATUS_BORDER_COLOR),
-        LV_PART_MAIN
+        status_box, LV_OPA_TRANSP, LV_PART_MAIN
     );
 
     lv_obj_set_style_border_width(
-        status_box, 1, LV_PART_MAIN
-    );
-
-    lv_obj_set_style_radius(
-        status_box, 12, LV_PART_MAIN
-    );
-
-    lv_obj_set_style_shadow_color(
-        status_box,
-        lv_color_hex(STATUS_SHADOW_COLOR),
-        LV_PART_MAIN
-    );
-
-    lv_obj_set_style_shadow_width(
-        status_box, 14, LV_PART_MAIN
-    );
-
-    lv_obj_set_style_shadow_opa(
-        status_box, 150, LV_PART_MAIN
-    );
-
-    lv_obj_set_style_shadow_spread(
-        status_box, 1, LV_PART_MAIN
-    );
-
-    lv_obj_set_style_shadow_ofs_x(
         status_box, 0, LV_PART_MAIN
     );
 
-    lv_obj_set_style_shadow_ofs_y(
+    lv_obj_set_style_outline_width(
+        status_box, 0, LV_PART_MAIN
+    );
+
+    lv_obj_set_style_shadow_width(
         status_box, 0, LV_PART_MAIN
     );
 
@@ -313,7 +281,6 @@ int zmk_widget_output_status_init(
         status_box, LV_OBJ_FLAG_SCROLLABLE
     );
 
-    /* USB */
     widget->transport_label = lv_label_create(status_box);
 
     lv_label_set_recolor(widget->transport_label, true);
@@ -342,7 +309,6 @@ int zmk_widget_output_status_init(
         7
     );
 
-    /* First separator */
     lv_obj_t *separator1 = lv_label_create(status_box);
 
     lv_label_set_text(separator1, "|");
@@ -369,7 +335,6 @@ int zmk_widget_output_status_init(
         7
     );
 
-    /* BLE */
     lv_obj_t *ble_status_label = lv_label_create(status_box);
 
     lv_label_set_recolor(ble_status_label, true);
@@ -398,7 +363,6 @@ int zmk_widget_output_status_init(
         7
     );
 
-    /* Second separator */
     lv_obj_t *separator2 = lv_label_create(status_box);
 
     lv_label_set_text(separator2, "|");
@@ -425,7 +389,6 @@ int zmk_widget_output_status_init(
         7
     );
 
-    /* Bluetooth profile */
     widget->ble_label = lv_label_create(status_box);
 
     lv_label_set_long_mode(
