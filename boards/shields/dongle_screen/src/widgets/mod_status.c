@@ -1,4 +1,3 @@
-
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zmk/hid.h>
@@ -7,7 +6,7 @@
 #include <lvgl.h>
 #include <stdio.h>
 #include "mod_status.h"
-#include <fonts.h>
+#include <fonts.h> // NerdFont
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -15,6 +14,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define LED_CLCK 0x02
 #define LED_SLCK 0x04
 
+// Spacing between modifier icons (pixels)
 #define MOD_ICON_SPACING 15
 
 static bool caps_lock_on = false;
@@ -32,10 +32,12 @@ static int mod_status_hid_indicators_listener(const zmk_event_t *eh)
     return 0;
 }
 
+/* Register listener + subscription */
 ZMK_LISTENER(widget_mod_status_hid_indicators,
              mod_status_hid_indicators_listener);
 ZMK_SUBSCRIPTION(widget_mod_status_hid_indicators,
                  zmk_hid_indicators_changed);
+
 
 static void update_mod_status(struct zmk_widget_mod_status *widget)
 {
@@ -46,32 +48,39 @@ static void update_mod_status(struct zmk_widget_mod_status *widget)
     const char *syms[5];
     int n = 0;
 
+    // CTRL
     if (mods & (MOD_LCTL | MOD_RCTL)) {
         syms[n++] = "󰘴";
     }
 
+    // SHIFT
     if (mods & (MOD_LSFT | MOD_RSFT)) {
-        syms[n++] = "󰘶";
+        syms[n++] = "󰘶"; // U+F0636
     }
 
+    // ALT
     if (mods & (MOD_LALT | MOD_RALT)) {
-        syms[n++] = "󰘵";
+        syms[n++] = "󰘵"; // U+F0635
     }
 
+    // GUI / SYSTEM
     if (mods & (MOD_LGUI | MOD_RGUI)) {
+        // Select icon based on system configuration
 #if CONFIG_DONGLE_SCREEN_SYSTEM_ICON == 1
         syms[n++] = "󰌽";
 #elif CONFIG_DONGLE_SCREEN_SYSTEM_ICON == 2
-        syms[n++] = "";
+        syms[n++] = ""; // U+E62A
 #else
-        syms[n++] = "󰘳";
+        syms[n++] = "󰘳"; // U+F0633
 #endif
     }
 
+    // CAPS LOCK
     if (caps_lock_on) {
-        syms[n++] = "󰘲";
+        syms[n++] = "󰘲"; // U+F0632
     }
 
+    // Combine modifier icons without space characters
     for (int i = 0; i < n; ++i) {
         idx += snprintf(
             &text[idx],
@@ -81,9 +90,18 @@ static void update_mod_status(struct zmk_widget_mod_status *widget)
         );
     }
 
+    // Update the label
     lv_label_set_text(widget->label, idx ? text : "");
-    lv_obj_align(widget->label, LV_ALIGN_CENTER, 0, 0);
+
+    // Re-center whenever the modifier combination changes
+    lv_obj_align(
+        widget->label,
+        LV_ALIGN_CENTER,
+        0,
+        0
+    );
 }
+
 
 static void mod_status_timer_cb(struct k_timer *timer)
 {
@@ -95,30 +113,44 @@ static void mod_status_timer_cb(struct k_timer *timer)
 
 static struct k_timer mod_status_timer;
 
+
 int zmk_widget_mod_status_init(
     struct zmk_widget_mod_status *widget,
     lv_obj_t *parent)
 {
+    // Create widget container
     widget->obj = lv_obj_create(parent);
     lv_obj_set_size(widget->obj, 180, 40);
 
+    // Create modifier label
     widget->label = lv_label_create(widget->obj);
 
+    // Set Nerd Font
     lv_obj_set_style_text_font(
         widget->label,
         &NerdFonts_Regular_40,
         LV_PART_MAIN
     );
 
+    // Add spacing between icons without using spaces
     lv_obj_set_style_text_letter_space(
         widget->label,
         MOD_ICON_SPACING,
         LV_PART_MAIN
     );
 
+    // Start with an empty label
     lv_label_set_text(widget->label, "");
-    lv_obj_align(widget->label, LV_ALIGN_CENTER, 0, 0);
 
+    // Center the label in the widget
+    lv_obj_align(
+        widget->label,
+        LV_ALIGN_CENTER,
+        0,
+        0
+    );
+
+    // Initialize update timer
     k_timer_init(
         &mod_status_timer,
         mod_status_timer_cb,
@@ -138,6 +170,7 @@ int zmk_widget_mod_status_init(
 
     return 0;
 }
+
 
 lv_obj_t *zmk_widget_mod_status_obj(
     struct zmk_widget_mod_status *widget)
