@@ -312,7 +312,7 @@ int zmk_widget_output_status_init(
     lv_obj_align(
         widget->transport_label,
         LV_ALIGN_TOP_LEFT,
-        20,
+        12,
         7
     );
 
@@ -338,7 +338,7 @@ int zmk_widget_output_status_init(
     lv_obj_align(
         separator1,
         LV_ALIGN_TOP_LEFT,
-        63,
+        59,
         7
     );
 
@@ -392,7 +392,7 @@ int zmk_widget_output_status_init(
     lv_obj_align(
         separator2,
         LV_ALIGN_TOP_LEFT,
-        115,
+        119,
         7
     );
 
@@ -423,7 +423,7 @@ int zmk_widget_output_status_init(
     lv_obj_align(
         widget->ble_label,
         LV_ALIGN_TOP_LEFT,
-        124,
+        132,
         7
     );
 
