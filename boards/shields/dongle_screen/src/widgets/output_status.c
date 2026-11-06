@@ -23,15 +23,16 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
-#define STATUS_BOX_WIDTH       160
-#define STATUS_BOX_HEIGHT      44
-#define STATUS_FIELD_WIDTH     42
+#define STATUS_BOX_WIDTH        160
+#define STATUS_BOX_HEIGHT       44
+#define STATUS_FIELD_WIDTH      42
+#define STATUS_PROFILE_WIDTH    16
 
-#define STATUS_ACCENT_COLOR    0x56BFD8
-#define STATUS_SEPARATOR_COLOR 0x91A5BD
+#define STATUS_ACCENT_COLOR     0x56BFD8
+#define STATUS_SEPARATOR_COLOR  0x91A5BD
 
-#define BLE_STATUS_CHILD_INDEX 2
-#define TRIANGLE_CHILD_INDEX   5
+#define BLE_STATUS_CHILD_INDEX  2
+#define TRIANGLE_CHILD_INDEX    5
 
 struct output_status_state
 {
@@ -228,21 +229,27 @@ int zmk_widget_output_status_init(
     widget->obj = lv_obj_create(parent);
 
     lv_obj_set_size(widget->obj, 240, 80);
+
     lv_obj_set_style_bg_opa(
         widget->obj, LV_OPA_TRANSP, LV_PART_MAIN
     );
+
     lv_obj_set_style_border_width(
         widget->obj, 0, LV_PART_MAIN
     );
+
     lv_obj_set_style_pad_all(
         widget->obj, 0, LV_PART_MAIN
     );
+
     lv_obj_set_style_outline_width(
         widget->obj, 0, LV_PART_MAIN
     );
+
     lv_obj_set_style_shadow_width(
         widget->obj, 0, LV_PART_MAIN
     );
+
     lv_obj_clear_flag(
         widget->obj, LV_OBJ_FLAG_SCROLLABLE
     );
@@ -305,7 +312,7 @@ int zmk_widget_output_status_init(
     lv_obj_align(
         widget->transport_label,
         LV_ALIGN_TOP_LEFT,
-        8,
+        20,
         7
     );
 
@@ -331,7 +338,7 @@ int zmk_widget_output_status_init(
     lv_obj_align(
         separator1,
         LV_ALIGN_TOP_LEFT,
-        51,
+        63,
         7
     );
 
@@ -359,7 +366,7 @@ int zmk_widget_output_status_init(
     lv_obj_align(
         ble_status_label,
         LV_ALIGN_TOP_LEFT,
-        60,
+        72,
         7
     );
 
@@ -385,7 +392,7 @@ int zmk_widget_output_status_init(
     lv_obj_align(
         separator2,
         LV_ALIGN_TOP_LEFT,
-        103,
+        115,
         7
     );
 
@@ -396,7 +403,7 @@ int zmk_widget_output_status_init(
     );
 
     lv_obj_set_width(
-        widget->ble_label, STATUS_FIELD_WIDTH
+        widget->ble_label, STATUS_PROFILE_WIDTH
     );
 
     lv_obj_set_style_text_color(
@@ -416,7 +423,7 @@ int zmk_widget_output_status_init(
     lv_obj_align(
         widget->ble_label,
         LV_ALIGN_TOP_LEFT,
-        112,
+        124,
         7
     );
 
