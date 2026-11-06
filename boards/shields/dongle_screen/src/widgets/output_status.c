@@ -58,19 +58,19 @@ static lv_obj_t *create_selection_triangle(lv_obj_t *parent)
 {
     lv_obj_t *triangle = lv_obj_create(parent);
 
-    lv_obj_set_size(triangle, 15, 8);
+    lv_obj_set_size(triangle, 19, 10);
     lv_obj_set_style_bg_opa(triangle, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_width(triangle, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(triangle, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(triangle, 0, LV_PART_MAIN);
     lv_obj_clear_flag(triangle, LV_OBJ_FLAG_SCROLLABLE);
 
-    for (int row = 0; row < 8; row++)
+    for (int row = 0; row < 10; row++)
     {
         lv_obj_t *pixel_row = lv_obj_create(triangle);
 
         lv_obj_set_size(pixel_row, 1 + (row * 2), 1);
-        lv_obj_set_pos(pixel_row, 7 - row, row);
+        lv_obj_set_pos(pixel_row, 9 - row, row);
 
         lv_obj_set_style_bg_color(
             pixel_row,
